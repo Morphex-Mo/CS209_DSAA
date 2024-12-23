@@ -1,66 +1,78 @@
 package lab9;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class ass51 {
+    static ArrayList<Integer>[] graph;
+    static int[] color; // 用于标记城市
+    static int count1, count2; // 计数每种标记的数量
 
-    public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        int T = Integer.parseInt(reader.readLine().trim());  // 测试用例数量
-        StringBuilder result = new StringBuilder();
-        for (int t = 0; t < T; t++) {
-            String[] firstLine = reader.readLine().trim().split(" ");
-            int n = Integer.parseInt(firstLine[0]);  // 城市数量
-            int m = Integer.parseInt(firstLine[1]);  // 道路数量
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        int t = scanner.nextInt(); // 测试用例数量
 
-            // 创建图的邻接表
-            ArrayList<Integer>[] graph = new ArrayList[n + 1];
-            for (int i = 1; i <= n; i++) {
-                graph[i] = new ArrayList<>();
+        for (int i = 0; i < t; i++) {
+            int n = scanner.nextInt(); // 城市数量
+            int m = scanner.nextInt(); // 道路数量
+
+            // 初始化图的邻接表
+            graph = new ArrayList[n + 1];
+            for (int j = 1; j <= n; j++) {
+                graph[j] = new ArrayList<>();
             }
 
-            // 读取边
-            for (int i = 0; i < m; i++) {
-                String[] edge = reader.readLine().trim().split(" ");
-                int x = Integer.parseInt(edge[0]);
-                int y = Integer.parseInt(edge[1]);
-                graph[x].add(y);  // 添加边 x - y
-                graph[y].add(x);  // 添加边 y - x（无向）
+            // 读取每条边
+            for (int j = 0; j < m; j++) {
+                int u = scanner.nextInt();
+                int v = scanner.nextInt();
+                graph[u].add(v);
+                graph[v].add(u);
             }
 
-            // 保护城市的布尔数组
-            boolean[] protectedCities = new boolean[n + 1];
-            ArrayList<Integer> towers = new ArrayList<>();
+            // 初始化颜色数组
+            color = new int[n + 1];
+            count1 = count2 = 0;
 
-            // 贪心选择城市建立防御塔
-            for (int u = 1; u <= n; u++) {
-                if (!protectedCities[u]) {  // 如果城市 u 未被保护
-                    towers.add(u);  // 在城市 u 建立塔
-                    protectedCities[u] = true;  // 保护 u
-                    // 保护所有相邻城市
-                    for (int neighbor : graph[u]) {
-                        protectedCities[neighbor] = true;  // 保护邻居
+            // 从节点 1 开始 DFS
+            dfs(1, 1);
+
+            // 根据标记数量选择较少的标记
+            ArrayList<Integer> result = new ArrayList<>();
+            if (count1 <= count2) {
+                for (int j = 1; j <= n; j++) {
+                    if (color[j] == 1) {
+                        result.add(j);
+                    }
+                }
+            } else {
+                for (int j = 1; j <= n; j++) {
+                    if (color[j] == 2) {
+                        result.add(j);
                     }
                 }
             }
 
-            // 限制塔的数量至多为 floor(n / 2)
-            int maxTowers = n / 2;
-            int k = Math.min(towers.size(), maxTowers);
-
             // 输出结果
+            System.out.println(result.size());
+            for (int city : result) {
+                System.out.print(city + " ");
+            }
+            System.out.println();
+        }
 
-            result.append(k).append("\n");
-            for (int i = 0; i < k; i++) {
-                result.append(towers.get(i)).append(" ");
-                if (t!=T-1){
-                    result.append("\n");
-                }
+        scanner.close();
+    }
+
+    static void dfs(int node, int col) {
+        color[node] = col; // 标记节点
+        if (col == 1) count1++;
+        else count2++;
+
+        for (int neighbor : graph[node]) {
+            if (color[neighbor] == 0) { // 如果未访问
+                dfs(neighbor, 3 - col); // 交替标记
             }
         }
-        System.out.println(result.toString().trim());
     }
 }
